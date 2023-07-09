@@ -1,3 +1,4 @@
+
 //
 //  NSMutableURLRequest+reddift.swift
 //  reddift
@@ -42,6 +43,18 @@ extension URLRequest {
         if let data = basicAuthenticationChallenge.data(using: .utf8) {
             let base64Str = data.base64EncodedString(options: .lineLength64Characters)
             setValue("Basic " + base64Str, forHTTPHeaderField: "Authorization")
+        } else {
+            throw ReddiftError.canNotCreateDataObjectForClientIDForBasicAuthentication as NSError
+        }
+    }
+
+    mutating func setOfficialRedditBasicAuthentication(refreshToken: String) throws {
+        let basicAuthenticationChallenge = Config.sharedInstance.clientID + ":"
+        if let data = basicAuthenticationChallenge.data(using: .utf8) {
+            let base64Str = data.base64EncodedString(options: .lineLength64Characters)
+            setValue("Basic " + base64Str, forHTTPHeaderField: "Authorization")
+            setValue("application/json", forHTTPHeaderField: "Content-Type")
+            setValue(refreshToken, forHTTPHeaderField: "Cookie")
         } else {
             throw ReddiftError.canNotCreateDataObjectForClientIDForBasicAuthentication as NSError
         }

@@ -1,3 +1,4 @@
+
 //
 //  RDTOAuth2Token.swift
 //  reddift
@@ -7,6 +8,7 @@
 //
 
 import Foundation
+
 
 /**
 OAuth2 token for access reddit.com API.
@@ -61,7 +63,7 @@ public struct OAuth2Token: Token {
             if let _ = json["access_token"] as? String,
                 let _ = json["token_type"] as? String,
                 let _ = json["expires_in"] as? Int,
-                let _ = json["scope"] as? String,
+                //let _ = json["scope"] as? String ?? "",//important actually is array when official and no useless
                 let _ = json["refresh_token"] as? String {
                     return Result(value: OAuth2Token(json))
             }
@@ -97,11 +99,39 @@ public struct OAuth2Token: Token {
     - returns: URLRequest object to request refreshing your access token.
     */
     public func requestForRefreshing() -> URLRequest? {
-        guard let URL = URL(string: OAuth2Token.baseURL + "/access_token") else { return nil }
+/*        guard let URL = URL(string: OAuth2Token.baseURL + "/access_token") else { return nil }
         var request = URLRequest(url: URL)
         do {
             try request.setRedditBasicAuthentication()
             let param = "grant_type=refresh_token&refresh_token=" + refreshToken
+            let data = param.data(using: .utf8)
+            request.httpBody = data
+            request.httpMethod = "POST"
+            return request
+        } catch {
+            print(error)
+            return nil
+        }*/
+
+        //official
+        guard let URL = URL(string: "https://accounts.reddit.com/api/access_token") else { return nil }
+        var request = URLRequest(url: URL)
+        do {
+            try request.setOfficialRedditBasicAuthentication(refreshToken: refreshToken)
+/*            let parameters: [String: Any] = [
+                "scopes": [
+                    "*",
+                    "email",
+                    "pii"
+                ]
+            ]
+
+            guard let data = try? JSONSerialization.data(withJSONObject: parameters, options: []) else {
+                return nil
+            }*/
+
+            let param = "{\"scopes\":[\"*\",\"email\",\"pii\"]}"
+
             let data = param.data(using: .utf8)
             request.httpBody = data
             request.httpMethod = "POST"
